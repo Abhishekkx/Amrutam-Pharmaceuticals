@@ -1,6 +1,12 @@
 # Amrutam Telemedicine Backend System
 
+[![CI/CD Pipeline](https://github.com/Abhishekkx/Amrutam-Pharmaceuticals/actions/workflows/ci.yml/badge.svg)](https://github.com/Abhishekkx/Amrutam-Pharmaceuticals/actions)
+[![Repository](https://img.shields.io/badge/GitHub-Abhishekkx%2FAmrutam--Pharmaceuticals-blue?logo=github)](https://github.com/Abhishekkx/Amrutam-Pharmaceuticals)
+
 Production-grade, high-concurrency backend for the Amrutam Pharmaceuticals Telemedicine Platform designed to support 100,000 daily consultations with p95 read latency < 200ms, p95 write latency < 500ms, and 99.95% availability targets.
+
+* **GitHub Repository**: [https://github.com/Abhishekkx/Amrutam-Pharmaceuticals](https://github.com/Abhishekkx/Amrutam-Pharmaceuticals)
+* **CI/CD Pipeline Status**: Passing (Automated containers for PostgreSQL & Redis, Type Checking, Prisma Generation, Jest Tests, Build)
 
 ---
 
@@ -80,6 +86,19 @@ Validated state graph enforces legal lifecycle transitions:
 * `SCHEDULED` -> `IN_PROGRESS` or `CANCELLED`
 * `IN_PROGRESS` -> `COMPLETED` or `CANCELLED`
 * Terminal states (`COMPLETED`, `CANCELLED`) reject further modifications.
+
+---
+
+## CI/CD Pipeline Verification
+
+The automated GitHub Actions CI pipeline ([`.github/workflows/ci.yml`](file:///d:/work/Amrutam%20Pharmaceuticals/.github/workflows/ci.yml)) executes on every push and pull request. It provisions live PostgreSQL 15 and Redis 7 containers in the CI runner and executes:
+1. Environment & Node.js 20 Setup
+2. Dependency Installation
+3. TypeScript Strict Type Checking (`npm run typecheck`)
+4. ESLint Analysis (`npm run lint`)
+5. Prisma Client Generation (`npx prisma generate`)
+6. Automated Unit, Integration, and Concurrency Test Suites (`npm test`)
+7. Production Bundle Compilation (`npm run build`)
 
 ---
 
