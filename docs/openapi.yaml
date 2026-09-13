@@ -1,0 +1,161 @@
+openapi: 3.0.3
+info:
+  title: Amrutam Pharmaceuticals Telemedicine API
+  description: Production-grade REST API backend for Amrutam's Telemedicine System
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local Development Server
+
+paths:
+  /auth/register:
+    post:
+      summary: User Registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, firstName, lastName]
+              properties:
+                email: { type: string, example: patient@amrutam.com }
+                password: { type: string, example: Password123! }
+                firstName: { type: string, example: John }
+                lastName: { type: string, example: Doe }
+                role: { type: string, enum: [PATIENT, DOCTOR, ADMIN], default: PATIENT }
+      responses:
+        '201':
+          description: User registered successfully
+        '409':
+          description: User with email already exists
+
+  /auth/login:
+    post:
+      summary: User Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, example: patient@amrutam.com }
+                password: { type: string, example: Password123! }
+      responses:
+        '200':
+          description: Authenticated successfully returning JWT tokens
+        '401':
+          description: Invalid email or password
+
+  /doctors/search:
+    get:
+      summary: Search Doctors with Filters
+      parameters:
+        - name: specialty
+          in: query
+          schema: { type: string }
+        - name: minRating
+          in: query
+          schema: { type: number }
+        - name: maxFee
+          in: query
+          schema: { type: number }
+      responses:
+        '200':
+          description: List of matching doctor profiles
+
+  /bookings:
+    post:
+      summary: Book a Doctor Consultation Slot (Idempotent & Concurrency Safe)
+      security:
+        - BearerAuth: []
+      headers:
+        X-Idempotency-Key:
+          schema: { type: string }
+          description: Unique client key to prevent duplicate booking execution
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [slotId]
+              properties:
+                slotId: { type: string, format: uuid }
+      responses:
+        '201':
+          description: Consultation booked successfully
+        '409':
+          description: Slot already booked or concurrent double booking prevented
+
+  /consultations/{id}/status:
+    patch:
+      summary: Update Consultation Status Transition
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED] }
+                notes: { type: string }
+      responses:
+        '200':
+          description: Status updated successfully
+        '400':
+          description: Invalid state transition
+
+  /prescriptions:
+    post:
+      summary: Issue Prescription for Consultation (Doctor Only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [consultationId, medications, instructions]
+              properties:
+                consultationId: { type: string, format: uuid }
+                medications:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name: { type: string }
+                      dosage: { type: string }
+                      frequency: { type: string }
+                      duration: { type: string }
+                instructions: { type: string }
+      responses:
+        '201':
+          description: Prescription issued with digital signature
+
+  /analytics/dashboard:
+    get:
+      summary: Fetch Admin Telemedicine Metrics Dashboard
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Analytics dashboard metrics returned
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

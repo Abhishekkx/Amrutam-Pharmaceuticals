@@ -1,0 +1,183 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+enum ConsultationStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String         @map("password_hash")
+  role          Role           @default(PATIENT)
+  mfaSecret     String?        @map("mfa_secret")
+  mfaEnabled    Boolean        @default(false) @map("mfa_enabled")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  profile       Profile?
+  doctor        Doctor?
+  consultations Consultation[] @relation("PatientConsultations")
+  payments      Payment[]
+  auditLogs     AuditLog[]     @relation("UserAuditLogs")
+
+  @@map("users")
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  firstName String   @map("first_name")
+  lastName  String   @map("last_name")
+  phone     String?
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model Doctor {
+  id               String             @id @default(uuid())
+  userId           String             @unique @map("user_id")
+  specialty        String
+  experienceYears  Int                @map("experience_years")
+  consultationFee  Float              @map("consultation_fee")
+  bio              String?
+  rating           Float              @default(5.0)
+  isVerified       Boolean            @default(true) @map("is_verified")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  availabilitySlots AvailabilitySlot[]
+  consultations     Consultation[]     @relation("DoctorConsultations")
+  prescriptions     Prescription[]     @relation("DoctorPrescriptions")
+
+  @@index([specialty])
+  @@index([rating])
+  @@map("doctors")
+}
+
+model AvailabilitySlot {
+  id        String   @id @default(uuid())
+  doctorId  String   @map("doctor_id")
+  startTime DateTime @map("start_time")
+  endTime   DateTime @map("end_time")
+  isBooked  Boolean  @default(false) @map("is_booked")
+  version   Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  doctor       Doctor        @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  consultation Consultation?
+
+  @@unique([doctorId, startTime])
+  @@index([doctorId, isBooked, startTime])
+  @@map("availability_slots")
+}
+
+model Consultation {
+  id        String             @id @default(uuid())
+  patientId String             @map("patient_id")
+  doctorId  String             @map("doctor_id")
+  slotId    String             @unique @map("slot_id")
+  status    ConsultationStatus @default(SCHEDULED)
+  notes     String?
+  createdAt DateTime           @default(now()) @map("created_at")
+  updatedAt DateTime           @updatedAt @map("updated_at")
+
+  patient      User              @relation("PatientConsultations", fields: [patientId], references: [id], onDelete: Cascade)
+  doctor       Doctor            @relation("DoctorConsultations", fields: [doctorId], references: [id], onDelete: Cascade)
+  slot         AvailabilitySlot  @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  prescription Prescription?
+  payment      Payment?
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([status])
+  @@map("consultations")
+}
+
+model Prescription {
+  id               String   @id @default(uuid())
+  consultationId   String   @unique @map("consultation_id")
+  doctorId         String   @map("doctor_id")
+  patientId        String   @map("patient_id")
+  medications      Json
+  instructions     String
+  digitalSignature String   @map("digital_signature")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  consultation Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  doctor       Doctor       @relation("DoctorPrescriptions", fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@map("prescriptions")
+}
+
+model Payment {
+  id             String        @id @default(uuid())
+  consultationId String        @unique @map("consultation_id")
+  userId         String        @map("user_id")
+  amount         Float
+  currency       String        @default("INR")
+  status         PaymentStatus @default(PENDING)
+  transactionRef String        @unique @map("transaction_ref")
+  idempotencyKey String?       @unique @map("idempotency_key")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  consultation Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("payments")
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  actorId       String?  @map("actor_id")
+  action        String
+  resource      String
+  resourceId    String?  @map("resource_id")
+  ipAddress     String?  @map("ip_address")
+  correlationId String?  @map("correlation_id")
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  actor User? @relation("UserAuditLogs", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

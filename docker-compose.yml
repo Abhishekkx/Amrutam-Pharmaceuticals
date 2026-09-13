@@ -1,0 +1,58 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: amrutam-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - API_PREFIX=/api/v1
+      - DATABASE_URL=postgresql://amrutam_user:amrutam_pass@postgres:5432/amrutam_db?schema=public
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=super_secret_jwt_key_amrutam_telemedicine_2026_prod
+      - JWT_EXPIRES_IN=1d
+      - JWT_REFRESH_SECRET=super_secret_refresh_key_amrutam_telemedicine_2026
+      - JWT_REFRESH_EXPIRES_IN=7d
+      - CORS_ORIGIN=*
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: always
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: amrutam-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: amrutam_user
+      POSTGRES_PASSWORD: amrutam_pass
+      POSTGRES_DB: amrutam_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U amrutam_user -d amrutam_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    container_name: amrutam-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+
+volumes:
+  postgres_data:
+  redis_data:
