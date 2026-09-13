@@ -22,6 +22,12 @@ variable "environment" {
   description = "Deployment environment"
 }
 
+variable "db_password" {
+  description = "PostgreSQL RDS master password injected via secrets manager or environment variable"
+  type        = string
+  sensitive   = true
+}
+
 # VPC Configuration
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
@@ -68,7 +74,7 @@ resource "aws_db_instance" "postgres" {
   instance_class         = "db.t4g.micro"
   db_name                = "amrutam_db"
   username               = "amrutam_admin"
-  password               = "ChangeMeInProd123!"
+  password               = var.db_password
   db_subnet_group_name   = aws_db_subnet_group.rds.name
   skip_final_snapshot    = true
   multi_az               = false
