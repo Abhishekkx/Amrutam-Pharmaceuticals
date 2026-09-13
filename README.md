@@ -100,6 +100,9 @@ The automated GitHub Actions CI pipeline ([`.github/workflows/ci.yml`](file:///d
 6. Automated Unit, Integration, and Concurrency Test Suites (`npm test`)
 7. Production Bundle Compilation (`npm run build`)
 
+   <img width="1091" height="848" alt="image" src="https://github.com/user-attachments/assets/c447ee79-db1a-46f1-82a2-0877641fea31" />
+
+
 ---
 
 ## Installation and Setup Guide
