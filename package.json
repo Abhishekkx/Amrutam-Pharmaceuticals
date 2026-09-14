@@ -10,7 +10,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:push": "prisma db push",
-    "test": "jest --runInBand --detectOpenHandles",
+    "test": "jest --runInBand --forceExit",
     "test:watch": "jest --watch",
     "lint": "eslint 'src/**/*.ts'",
     "typecheck": "tsc --noEmit"

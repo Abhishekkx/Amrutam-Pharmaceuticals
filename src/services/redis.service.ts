@@ -19,6 +19,7 @@ class RedisService {
         password: config.redis.password,
         lazyConnect: true,
         maxRetriesPerRequest: 1,
+        enableOfflineQueue: false,
         retryStrategy: () => null,
       });
 
@@ -39,6 +40,18 @@ class RedisService {
     } catch (err: any) {
       this.isConnected = false;
       logger.warn(`Failed to initialize Redis client: ${err.message}`);
+    }
+  }
+
+  public async disconnect(): Promise<void> {
+    if (this.client) {
+      try {
+        this.client.disconnect();
+      } catch (e) {
+        // Ignore disconnect errors during shutdown
+      }
+      this.client = null;
+      this.isConnected = false;
     }
   }
 
