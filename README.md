@@ -15,12 +15,12 @@ Production-grade, high-concurrency backend for the Amrutam Pharmaceuticals Telem
 | # | Required Deliverable | Repository File / Location | Status |
 | :--- | :--- | :--- | :--- |
 | 1 | Git repo with code & infra | Project root (`src/`, `Dockerfile`, `docker-compose.yml`, `infra/`) | Complete |
-| 2 | README with setup instructions | [`README.md`](file:///d:/work/Amrutam%20Pharmaceuticals/README.md) | Complete |
-| 3 | OpenAPI REST Schema | [`docs/openapi.yaml`](file:///d:/work/Amrutam%20Pharmaceuticals/docs/openapi.yaml) | Complete |
-| 4 | Architecture Document (2-4 pages) | [`ARCHITECTURE.md`](file:///d:/work/Amrutam%20Pharmaceuticals/ARCHITECTURE.md) | Complete |
-| 5 | Automated Tests & CI Pipeline | [`tests/`](file:///d:/work/Amrutam%20Pharmaceuticals/tests/) & [`.github/workflows/ci.yml`](file:///d:/work/Amrutam%20Pharmaceuticals/.github/workflows/ci.yml) | Complete |
+| 2 | README with setup instructions | [`README.md`](./README.md) | Complete |
+| 3 | OpenAPI REST Schema | [`docs/openapi.yaml`](./docs/openapi.yaml) | Complete |
+| 4 | Architecture Document (2-4 pages) | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | Complete |
+| 5 | Automated Tests & CI Pipeline | [`tests/`](./tests/) & [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) | Complete |
 | 6 | Observability Setup | Prometheus `/metrics`, JSON logs, `/health` & `/ready` probes | Complete |
-| 7 | Security Checklist & Threat Model | [`SECURITY_THREAT_MODEL.md`](file:///d:/work/Amrutam%20Pharmaceuticals/SECURITY_THREAT_MODEL.md) | Complete |
+| 7 | Security Checklist & Threat Model | [`SECURITY_THREAT_MODEL.md`](./SECURITY_THREAT_MODEL.md) | Complete |
 
 ---
 
@@ -91,7 +91,7 @@ Validated state graph enforces legal lifecycle transitions:
 
 ## CI/CD Pipeline Verification
 
-The automated GitHub Actions CI pipeline ([`.github/workflows/ci.yml`](file:///d:/work/Amrutam%20Pharmaceuticals/.github/workflows/ci.yml)) executes on every push and pull request. It provisions live PostgreSQL 15 and Redis 7 containers in the CI runner and executes:
+The automated GitHub Actions CI pipeline ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml)) executes on every push and pull request. It provisions live PostgreSQL 15 and Redis 7 containers in the CI runner and executes:
 1. Environment & Node.js 20 Setup
 2. Dependency Installation
 3. TypeScript Strict Type Checking (`npm run typecheck`)
@@ -185,7 +185,7 @@ npm test
 | `POST` | `/api/v1/payments` | Process payment for consultation | Authenticated |
 | `GET` | `/api/v1/analytics/dashboard` | Admin analytics dashboard metrics | Admin |
 
-Complete OpenAPI 3.0 specification is maintained in [`docs/openapi.yaml`](file:///d:/work/Amrutam%20Pharmaceuticals/docs/openapi.yaml).
+Complete OpenAPI 3.0 specification is maintained in [`docs/openapi.yaml`](./docs/openapi.yaml).
 
 ---
 
